@@ -2,6 +2,8 @@ import mongoengine
 from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Response
+from typing import List
+
 from models import DatashakeSchedule
 from serializers import ScheduleScrapeRequest, Product
 from tasks import (
@@ -56,7 +58,9 @@ def create_schedule(request: ScheduleScrapeRequest):
             status_code=400, detail="A schedule already exists for this URL."
         )
     response = process_create_schedule(
-        request.frequency, request.schedule_name, request.params
+        frequency=request.frequency,
+        query_params=request.params,
+        schedule_name=request.schedule_name,
     )
     if response["status"] != "success":
         raise HTTPException(400, detail=response)
@@ -76,7 +80,7 @@ def delete_schedule(schedule_id: int):
 
 
 @router.post("/product_mapping", dependencies=[Depends(validate_api_key)])
-def update_product_mapping(products: list[Product]):
+def update_product_mapping(products: List[Product]):
     skipped = add_products(products)
     if skipped:
         return Response(

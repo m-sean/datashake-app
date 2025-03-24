@@ -1,7 +1,7 @@
 import enum
 import mongoengine
 import pydantic
-
+from typing import Optional
 
 class ScheduleFrequency(str, enum.Enum):
     DAILY = "daily"
@@ -26,8 +26,8 @@ class Product(pydantic.BaseModel):
 class ScrapeParams(pydantic.BaseModel):
     url: str
     callback: str
-    from_date: str | None = None
-    diff: int | None = None
+    from_date: Optional[str] = None
+    diff: Optional[int] = None
 
 
 class ScheduleScrapeRequest(pydantic.BaseModel):

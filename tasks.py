@@ -2,6 +2,8 @@ import json
 import math
 import requests
 from datetime import date
+from typing import List, Optional
+
 from models import (
     DatashakeSchedule,
     ProductMapping,
@@ -32,8 +34,8 @@ _HEADERS = {
 @timeout(30)
 def process_create_schedule(
     frequency: ScheduleFrequency,
-    schedule_name: str | None,
     query_params: ScrapeParams,
+    schedule_name: Optional[str] = None,
 ):
     headers = {
         "x-api-key": _HEADERS["spiderman-token"],
@@ -91,7 +93,7 @@ def process_callback(job_id: int, status: JobStatus):
         notify(f"Unable to retrieve rewiews from job {job_id}.\nERROR: {err}")
 
 
-def add_products(products: list[Product]):
+def add_products(products: List[Product]):
     exists = []
     for prod in products:
         if ProductMapping.objects.filter(product_id=prod.id):

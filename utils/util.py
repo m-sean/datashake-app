@@ -1,6 +1,5 @@
 import configparser
 import hashlib
-import os
 import pandas as pd
 import requests
 

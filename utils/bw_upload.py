@@ -1,6 +1,6 @@
 import logging
 import requests
-from typing import Iterable
+from typing import Dict, Iterable, List
 
 from models import ProductReview
 from utils.decorators import retry, timeout
@@ -65,20 +65,20 @@ class BrandwatchUploader:
 
     @retry(target_exception=Exception, max_retries=3, max_backoff=5)
     @timeout(timeout_max=30)
-    def get_sources(self) -> dict[str, int]:
+    def get_sources(self) -> Dict[str, int]:
         response = requests.get(self._SOURCES, headers=self.header)
         response.raise_for_status()
         return {src["name"]: src["id"] for src in response.json()["results"]}
 
     @retry(target_exception=Exception, max_retries=3, max_backoff=5)
     @timeout(timeout_max=30)
-    def push_data(self, data: dict[str, any]) -> dict[str, any]:
+    def push_data(self, data: Dict[str, any]) -> Dict[str, any]:
         logging.info(f"Pushing {len(data['items'])} documents to Brandwatch")
         response = requests.post(self._UPLOAD, json=data, headers=self.header)
         response.raise_for_status()
         return response.json()
 
-    def as_bw_mention(self, source_row: dict[str, any]) -> dict[str, any]:
+    def as_bw_mention(self, source_row: Dict[str, any]) -> Dict[str, any]:
         mention = {}
         for src, target in self._BW_FIELD_MAPPING.items():
             if (value := source_row.get(src)) is not None:
@@ -93,7 +93,7 @@ class BrandwatchUploader:
             mention["custom"] = custom
         return mention
 
-    def _upload_batch(self, batch_rows: list[dict], source_id: int):
+    def _upload_batch(self, batch_rows: List[dict], source_id: int):
         data = {"items": [], "contentSource": source_id}
         for row in batch_rows:
             mention = self.as_bw_mention(row)
@@ -102,7 +102,7 @@ class BrandwatchUploader:
         return response
 
 
-def _validated_row(row: dict[str, any]):
+def _validated_row(row: Dict[str, any]):
     if not (row["review_text"].strip()):
         if not (title := row["review_title"].strip()):
             if row["rating"] is None:
